@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宫金龙 | 后期合成作品集</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background: #000; color: #fff; overflow-x: hidden; -webkit-font-smoothing: antialiased; 
+        }
+
+        /* 1. 进场过渡动画容器（避免破坏 Fixed 定位） */
+        .page-entry {
+            animation: pageFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: none; }
+        }
+        
+        /* 苹果风格导航 */
+        nav { 
+            position: fixed; top: 0; width: 100%; z-index: 1000; backdrop-filter: blur(25px); 
+            background: rgba(0,0,0,0.75); padding: 15px 5%; display: flex; justify-content: space-between; 
+            align-items: center; border-bottom: 0.5px solid rgba(255,255,255,0.1); 
+            animation: navFade 1s ease forwards;
+        }
+        @keyframes navFade { from { opacity: 0; } to { opacity: 1; } }
+        .nav-logo { font-weight: 600; letter-spacing: 1.5px; font-size: 1.1rem; }
+        .nav-contact { font-size: 0.85rem; color: #86868b; font-weight: 500; display: flex; gap: 15px; }
+
+        /* 英雄区 */
+        .hero { 
+            height: 100vh; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 20px;
+        }
+        .hero h1 { 
+            font-size: clamp(3.5rem, 12vw, 7rem); font-weight: 700; letter-spacing: -4px; 
+            background: linear-gradient(180deg, #fff 40%, #a1a1a6 100%); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            margin-bottom: 40px;
+            display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 10px;
+        }
+
+        /* 技能图标矩阵 - 苹果式网格 */
+        .skill-matrix { display: grid; grid-template-columns: repeat(6, 1fr); gap: 40px; max-width: 800px; margin-top: 20px; }
+        .skill-item { display: flex; flex-direction: column; align-items: center; gap: 12px; transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1); cursor: default; }
+        .skill-item:hover { transform: translateY(-8px) scale(1.1); filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
+        .skill-item svg { width: 42px; height: 42px; border-radius: 8px; }
+        .skill-item span { font-size: 11px; color: #86868b; font-weight: 500; letter-spacing: 1px; }
+
+        /* 2. 作品网格：强制4个海报在同一行 */
+        .poster-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; padding: 100px 8%; background: #000; }
+        .poster-card { position: relative; overflow: hidden; border-radius: 24px; aspect-ratio: 3/4; background: #111; border: 1px solid #222; cursor: pointer; transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .poster-card:hover { transform: scale(1.02); border-color: #444; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+        .poster-img { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+        .poster-card:hover .poster-img { transform: scale(1.1); filter: brightness(0.4); }
+        .poster-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: 0.4s; }
+        .poster-card:hover .poster-overlay { opacity: 1; }
+        .poster-overlay h3 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 500; text-align: center; }
+        .btn-view { padding: 8px 20px; border: 1px solid #fff; border-radius: 20px; font-size: 0.8rem; }
+
+        /* 弹窗及交互 */
+        .modal { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; padding: 40px 20px; flex-direction: column; align-items: center; overflow-y: auto; }
+        .modal.active { display: flex; }
+        .close-btn { position: fixed; top: 30px; right: 40px; font-size: 2.5rem; cursor: pointer; color: #86868b; z-index: 2100; transition: 0.3s; }
+        .close-btn:hover { color: #fff; transform: rotate(90deg); }
+        .comparison-wrapper { width: 100%; max-width: 1000px; margin-bottom: 60px; animation: fadeInUp 0.8s ease backwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .comparison-container { position: relative; width: 100%; aspect-ratio: 16/9; margin: 0 auto; overflow: hidden; border-radius: 12px; border: 1px solid #333; cursor: ew-resize; }
+        .img-layer { position: absolute; top: 0; left: 0; height: 100%; overflow: hidden; }
+        .img-layer img { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; }
+        .line-white { border-right: 2px solid #fff; }
+        .line-blue { border-right: 2px solid #0071e3; }
+
+        footer { padding: 80px 0; text-align: center; color: #444; font-size: 0.9rem; letter-spacing: 2px; }
+
+        /* 响应式调整 */
+        @media (max-width: 1024px) {
+            .poster-grid { grid-template-columns: repeat(2, 1fr); }
+            .motion-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+            .skill-matrix { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+            .hero h1 { font-size: 3.5rem; }
+            .poster-grid { grid-template-columns: repeat(1, 1fr); }
+            .motion-grid { grid-template-columns: repeat(1, 1fr) !important; }
+            nav { flex-direction: column; gap: 8px; }
+            .nav-contact { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo">GONG JINLONG</div>
+    <div class="nav-contact">
+        <span>18447600849</span>
+        <span>|</span>
+        <span>gongjl@zohomail.cn</span>
+    </div>
+</nav>
+
+<main class="page-entry">
+    <section class="hero">
+        <h1 data-aos="fade-up">
+            宫金龙
+            <span style="font-size: clamp(1rem, 3vw, 2.2rem); color: #86868b; font-weight: 500; letter-spacing: 2px; -webkit-text-fill-color: #86868b;">（后期合成两年）</span>
+        </h1>
+        
+        <div class="skill-matrix" data-aos="fade-up" data-aos-delay="300">
+            <div class="skill-item">
+                <svg viewBox="0 0 1024 1024"><path d="M64 64m102.4 0l691.2 0q102.4 0 102.4 102.4l0 691.2q0 102.4-102.4 102.4l-691.2 0q-102.4 0-102.4-102.4l0-691.2q0-102.4 102.4-102.4Z" fill="#1F0040"></path><path d="M857.6 983.04H166.4a125.5808 125.5808 0 0 1-125.44-125.44V166.4a125.5808 125.5808 0 0 1 125.44-125.44h691.2a125.5808 125.5808 0 0 1 125.44 125.44v691.2a125.5808 125.5808 0 0 1-125.44 125.44zM166.4 87.04a79.4496 79.4496 0 0 0-79.36 79.36v691.2a79.4496 79.4496 0 0 0 79.36 79.36h691.2a79.4496 79.4496 0 0 0 79.36-79.36V166.4a79.4496 79.4496 0 0 0-79.36-79.36z" fill="#D291FF"></path><path d="M343.7312 325.632h68.096l140.8 365.568h-68.608l-34.304-96.768h-145.92l-34.304 96.768h-66.048z m-22.528 220.16h111.616l-54.784-157.184h-1.536zM624.8192 573.952c0 41.472 22.528 78.336 71.168 78.336 33.792 0 54.272-14.848 64.512-44.032h55.296c-12.8 57.856-61.952 90.112-119.808 90.112-82.944 0-129.536-57.856-129.536-139.264 0-75.264 49.152-139.776 128-139.776 83.456 0 134.656 75.264 124.928 154.624z m136.192-38.4c-2.048-36.864-27.136-70.144-66.56-70.144-40.448 0-68.096 30.72-69.632 70.144z" fill="#D291FF"></path></svg>
+                <span>AE</span>
+            </div>
+            <div class="skill-item">
+                <svg viewBox="0 0 1024 1024"><path d="M64 64m102.4 0l691.2 0q102.4 0 102.4 102.4l0 691.2q0 102.4-102.4 102.4l-691.2 0q-102.4 0-102.4-102.4l0-691.2q0-102.4 102.4-102.4Z" fill="#2A0034"></path><path d="M857.6 983.04H166.4a125.5808 125.5808 0 0 1-125.44-125.44V166.4a125.5808 125.5808 0 0 1 125.44-125.44h691.2a125.5808 125.5808 0 0 1 125.44 125.44v691.2a125.5808 125.5808 0 0 1-125.44 125.44zM166.4 87.04a79.4496 79.4496 0 0 0-79.36 79.36v691.2a79.4496 79.4496 0 0 0 79.36 79.36h691.2a79.4496 79.4496 0 0 0 79.36-79.36V166.4a79.4496 79.4496 0 0 0-79.36-79.36z" fill="#EA77FF"></path><path d="M267.776 329.216h161.28c104.448 0 124.416 67.584 124.416 113.152 0 45.056-19.968 112.64-124.416 112.128h-97.28v140.288h-64z m64 173.056h93.696c28.672 0 64-14.336 64-60.416 0-48.128-29.184-60.416-62.976-60.416h-94.72zM601.088 430.08h54.784v51.2h1.024c6.656-28.16 41.472-58.368 77.312-58.368a138.9696 138.9696 0 0 1 22.016 1.536v56.32c-8.192-1.024-16.896-2.56-25.088-2.56-39.936 0-71.68 32.256-71.68 90.624v125.952h-58.368z" fill="#EA77FF"></path></svg>
+                <span>PR</span>
+            </div>
+            <div class="skill-item">
+                <svg viewBox="0 0 1024 1024"><path d="M64 64m102.4 0l691.2 0q102.4 0 102.4 102.4l0 691.2q0 102.4-102.4 102.4l-691.2 0q-102.4 0-102.4-102.4l0-691.2q0-102.4 102.4-102.4Z" fill="#001D26"></path><path d="M857.6 983.04H166.4a125.5808 125.5808 0 0 1-125.44-125.44V166.4a125.5808 125.5808 0 0 1 125.44-125.44h691.2a125.5808 125.5808 0 0 1 125.44 125.44v691.2a125.5808 125.5808 0 0 1-125.44 125.44zM166.4 87.04a79.4496 79.4496 0 0 0-79.36 79.36v691.2a79.4496 79.4496 0 0 0 79.36 79.36h691.2a79.4496 79.4496 0 0 0 79.36-79.36V166.4a79.4496 79.4496 0 0 0-79.36-79.36z" fill="#00C8FF"></path><path d="M234.752 325.632h161.28c104.448 0 124.416 67.584 124.416 113.152 0 45.056-19.968 112.64-124.416 112.128h-97.28V691.2h-64z m64 173.056h93.696c28.672 0 64-14.336 64-60.416 0-48.128-29.184-60.416-62.976-60.416h-94.72zM612.096 606.208c3.072 33.792 28.672 46.08 59.904 46.08 22.016 0 60.416-4.608 58.88-34.816-1.536-30.72-44.032-34.304-86.528-44.032-43.008-9.216-84.992-24.576-84.992-78.336 0-57.856 62.464-75.776 110.592-75.776 54.272 0 103.424 22.528 110.592 81.408h-60.928c-5.12-27.648-28.16-35.328-53.76-35.328-16.896 0-48.128 4.096-48.128 27.136 0 28.672 43.008 32.768 86.016 42.496 42.496 9.728 85.504 25.088 85.504 77.312 0 62.976-63.488 86.016-118.272 86.016-66.56 0-116.224-29.696-117.248-92.16z" fill="#00C8FF"></path></svg>
+                <span>PS</span>
+            </div>
+            <div class="skill-item">
+                <svg viewBox="0 0 1024 1024"><path d="M873.83 222.3c0-76.62-62.11-138.73-138.73-138.73H285.58c-76.62 0-138.73 62.11-138.73 138.73v577.81c0 76.62 62.11 138.73 138.73 138.73H646.6l227.23-211.23V222.3z" fill="#180738"></path><path d="M655 960.22H285.58c-88.28 0-160.11-71.83-160.11-160.11V222.3c0-88.28 71.82-160.11 160.11-160.11H735.1c88.28 0 160.11 71.82 160.11 160.11v514.62L655 960.22zM285.58 104.96c-64.7 0-117.35 52.64-117.35 117.35v577.81c0 64.71 52.64 117.35 117.35 117.35h352.61L852.45 718.3v-496c0-64.7-52.64-117.35-117.34-117.35H285.58z" fill="#B1ACEF"></path><path d="M427.58 357.26l105.07 274.8h-48.11l-25.02-68.89H344.44l-25.02 68.89h-48.11l105.07-274.8h51.2z m18.47 168.95l-43.11-120.47h-1.54l-43.49 120.47h88.14zM733.16 509.28v122.77h-43.88V513.13c0-32.71-15.01-48.88-45.03-48.88-10.78 0-20.4 3.85-28.48 11.55-9.24 8.47-14.63 20.78-16.17 36.56v119.7h-43.88V433.08h43.88v23.09c7.7-9.24 16.55-16.55 26.17-21.17 10.01-5 20.78-7.31 32.71-7.31 49.66 0 74.68 26.94 74.68 81.59z" fill="#B1ACEF"></path></svg>
+                <span>AN</span>
+            </div>
+            <div class="skill-item">
+                <svg viewBox="0 0 1024 1024"><path d="M341.333333 85.333333h384.128L938.666667 300.629333V853.333333a85.333333 85.333333 0 0 1-85.333334 85.333334H341.333333a85.333333 85.333333 0 0 1-85.333333-85.333334V170.666667a85.333333 85.333333 0 0 1 85.333333-85.333334z" fill="#8B3143"></path><path d="M725.333333 85.333333v189.696c0 13.056 10.709333 23.637333 23.893334 23.637334H938.666667l-213.333334-213.333334z" fill="#EF4D6F"></path><path d="M42.666667 341.333333m42.666666 0l768 0q42.666667 0 42.666667 42.666667l0 384q0 42.666667-42.666667 42.666667l-768 0q-42.666667 0-42.666666-42.666667l0-384q0-42.666667 42.666666-42.666667Z" fill="#EF4D6F"></path><path d="M242.176 434.176c-37.546667 0-66.901333 12.629333-87.381333 38.570667-18.773333 23.210667-27.989333 52.906667-27.989334 89.088 0 36.181333 8.874667 65.536 27.306667 88.064 20.138667 24.917333 49.152 37.546667 87.04 37.546666 25.941333 0 48.469333-7.509333 67.242667-22.186666 20.138667-15.701333 32.768-37.888 38.229333-66.218667h-26.965333c-4.778667 21.162667-14.677333 37.205333-29.013334 48.128-13.653333 10.24-30.037333 15.36-49.493333 15.36-28.672 0-50.176-9.557333-65.194667-28.330667-14.336-17.749333-21.162667-41.984-21.162666-72.362666s7.168-54.613333 21.504-73.045334c15.36-19.797333 37.205333-29.696 65.536-29.696 19.114667 0 35.157333 4.437333 48.469333 13.653334 13.653333 9.557333 22.528 23.210667 25.941333 40.96h26.965334c-3.413333-24.234667-14.336-43.690667-32.768-58.026667-18.432-14.336-41.301333-21.504-68.266667-21.504zM456.874667 438.954667L360.96 682.666667h30.037333l25.941334-68.266667h111.957333l25.941333 68.266667h30.378667l-95.914667-243.712h-32.426666z m-31.061334 151.893333l46.762667-121.856h1.365333l46.08 121.856H425.813333zM609.792 438.954667V682.666667h84.650667c38.229333 0 67.584-11.264 88.064-33.450667 19.456-21.162667 29.354667-50.858667 29.354666-88.405333 0-38.229333-9.216-67.925333-27.306666-88.405334-19.797333-22.528-48.810667-33.450667-87.381334-33.450666h-87.381333z m27.989333 24.234666h54.954667c32.085333 0 55.296 8.192 70.314667 24.917334 13.994667 15.701333 21.162667 39.936 21.162666 72.704 0 31.744-7.850667 55.978667-22.869333 72.362666-16.042667 16.725333-39.936 25.258667-71.68 25.258667h-51.882667v-195.242667z" fill="#FFFFFF"></path></svg>
+                <span>CAD</span>
+            </div>
+            <div class="skill-item">
+                <svg viewBox="0 0 1024 1024"><path d="M0 0h1024v1024H0z" fill="#C4E6F1" fill-opacity="0"></path><path d="M69.632 69.632h883.712v883.712H69.632z" fill="#0071BC"></path><path d="M595.968 678.912l143.36-284.672-263.168 172.032 119.808 112.64z m0 0" fill="#6AC7E7"></path><path d="M328.704 679.936l267.264-1.024-120.832-112.64-191.488 2.048 45.056 111.616z m0 0" fill="#26A8E0"></path><path d="M419.84 512l-136.192 56.32 191.488-2.048L419.84 512z m0 0" fill="#73C9E1"></path><path d="M739.328 394.24L419.84 512l55.296 54.272 264.192-172.032z m0 0" fill="#C4E6F1"></path><path d="M595.968 111.616l143.36 284.672-263.168-172.032 119.808-112.64z m0 0" fill="#6AC7E7"></path><path d="M328.704 110.592l267.264 1.024-120.832 112.64-191.488-2.048 45.056-111.616z m0 0" fill="#26A8E0"></path><path d="M419.84 278.528l-136.192-56.32 191.488 2.048-55.296 54.272z m0 0" fill="#73C9E1"></path><path d="M738.304 395.264L419.84 278.528l55.296-54.272 263.168 171.008z m0 0" fill="#C4E6F1"></path><path d="M419.84 278.528L291.84 394.24h-2.048l1.024 1.024-1.024 1.024h2.048L419.84 512l55.296-20.48 1.024-94.208v-4.096l-1.024-94.208-55.296-20.48z m0 0" fill="#26A8E0"></path><path d="M477.184 299.008V491.52l262.144-96.256-262.144-96.256z m0 0" fill="#73C9E1"></path><path d="M215.04 873.472c0 11.264-2.048 21.504-7.168 29.696-5.12 8.192-12.288 14.336-20.48 18.432-8.192 4.096-18.432 6.144-28.672 6.144-7.168 0-14.336-1.024-21.504-3.072-7.168-2.048-13.312-5.12-18.432-9.216s-9.216-10.24-12.288-16.384c-3.072-7.168-5.12-14.336-5.12-22.528h26.624c0 6.144 2.048 11.264 5.12 15.36 3.072 4.096 6.144 7.168 11.264 9.216 4.096 2.048 9.216 3.072 14.336 3.072 6.144 0 11.264-1.024 15.36-4.096 5.12-2.048 8.192-6.144 11.264-10.24 3.072-5.12 4.096-10.24 4.096-16.384 0-6.144-1.024-11.264-3.072-16.384-2.048-4.096-6.144-8.192-10.24-10.24-5.12-2.048-10.24-4.096-17.408-4.096h-4.096V819.2h4.096c9.216 0 16.384-2.048 21.504-7.168 5.12-5.12 7.168-12.288 7.168-20.48 0-5.12-1.024-9.216-2.048-12.288-1.024-4.096-3.072-7.168-6.144-9.216-2.048-2.048-5.12-4.096-9.216-5.12-3.072-1.024-7.168-2.048-10.24-2.048-8.192 0-14.336 2.048-19.456 7.168-5.12 5.12-8.192 11.264-8.192 19.456h-26.624c0-10.24 3.072-19.456 8.192-26.624 5.12-7.168 11.264-13.312 19.456-17.408 8.192-4.096 17.408-6.144 26.624-6.144 10.24 0 19.456 2.048 27.648 6.144 8.192 4.096 14.336 10.24 19.456 18.432 4.096 8.192 7.168 16.384 7.168 26.624 0 18.432-7.168 31.744-22.528 39.936 8.192 3.072 14.336 9.216 19.456 16.384 1.024 6.144 4.096 15.36 4.096 26.624zM384 831.488v9.216c0 10.24 0 18.432-1.024 26.624-1.024 7.168-2.048 14.336-5.12 21.504-3.072 7.168-7.168 13.312-12.288 19.456-11.264 11.264-27.648 17.408-48.128 17.408h-65.536V740.352H317.44c20.48 0 35.84 6.144 48.128 17.408 5.12 5.12 9.216 11.264 12.288 18.432 3.072 7.168 4.096 14.336 5.12 20.48 1.024 7.168 1.024 15.36 1.024 24.576v10.24z m-27.648 0v-24.576c0-6.144-1.024-11.264-3.072-16.384-1.024-5.12-4.096-9.216-7.168-12.288-7.168-8.192-18.432-12.288-31.744-12.288h-33.792v134.144h33.792c13.312 0 23.552-4.096 31.744-12.288 4.096-5.12 7.168-11.264 8.192-19.456 1.024-9.216 2.048-20.48 2.048-36.864zM588.8 924.672h-28.672v-122.88l-41.984 90.112h-20.48l-44.032-90.112v123.904h-28.672V740.352h28.672l54.272 114.688 53.248-114.688h28.672v184.32zM773.12 924.672h-29.696l-12.288-36.864h-72.704L645.12 924.672h-29.696l67.584-185.344h22.528l67.584 185.344z m-50.176-60.416l-27.648-81.92-28.672 81.92h56.32zM922.624 924.672H890.88l-40.96-70.656-39.936 70.656H778.24l57.344-95.232-53.248-90.112h31.744l36.864 66.56 36.864-66.56h31.744L866.304 829.44l56.32 95.232z" fill="#FFFFFF"></path></svg>
+                <span>3DMAX</span>
+            </div>
+        </div>
+    </section>
+
+    <section style="padding: 60px 8% 20px; background: #000;">
+        <div style="max-width: 1100px; margin: 0 auto;">
+            
+            <div data-aos="fade-up" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px; margin-bottom: 40px; backdrop-filter: blur(10px);">
+                <h2 style="font-size: 1.2rem; margin-bottom: 20px; letter-spacing: 2px; background: linear-gradient(45deg, #00C8FF, #0071BC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">教育背景 / ACADEMIC</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    <div>
+                        <p style="font-size: 1.1rem; font-weight: 600; color: #fff;">吉林工程职业学院 <span style="font-weight: 400; font-size: 0.9rem; color: #86868b; margin-left: 10px;">2020.09 - 2023.06</span></p>
+                        <p style="color: #a1a1a6; margin-top: 8px; display: flex; align-items: center;">
+                            信息工程学院 · 动漫制作技术专业 
+                            <span style="font-size: 0.75rem; color: #00C8FF; border: 1px solid #00C8FF; padding: 2px 8px; border-radius: 4px; margin-left: 10px;">专科</span>
+                        </p>
+                    </div>
+                    <div style="color: #a1a1a6; font-size: 0.95rem; line-height: 1.6;">
+                        <p>政治面貌：<b>共青团员</b> | 民族：<b>汉族</b></p>
+                        <p>在校经历：2021年7月参与信息工程学院组织合心村绘画活动，负责村头红色主题墙面绘画。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div data-aos="fade-up" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px; backdrop-filter: blur(10px);">
+                <h2 style="font-size: 1.2rem; margin-bottom: 25px; letter-spacing: 2px; background: linear-gradient(45deg, #00C8FF, #0071BC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">工作履历 / CAREER</h2>
+                
+                <div style="position: relative; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 25px;">
+                    <div style="margin-bottom: 30px;">
+                        <div style="position: absolute; left: -5px; width: 9px; height: 9px; background: #00C8FF; border-radius: 50%; top: 8px;"></div>
+                        <div style="color: #00C8FF; font-weight: 600; font-size: 0.95rem; margin-bottom: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <span>2022.07 - 2024.04</span>
+                            <span style="color: #fff; font-weight: 500; font-size: 1rem; letter-spacing: 1px;">北京国色天香科技传媒有限公司</span>
+                        </div>
+                        
+                        <div style="display: grid; gap: 20px;">
+                            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px;">
+                                <h3 style="font-size: 1rem; color: #fff; margin-bottom: 10px;">《运河边的人们》 / 画面修补与合成</h3>
+                                <p style="color: #a1a1a6; font-size: 0.9rem; line-height: 1.6;">使用 PS 仿制图章进行帧冻结修补；利用 AE 二维/三维追踪贴片、蒙版（Mask）及 Roto 工具精细区分层级，完成画面最终的噪点匹配、模糊处理及色彩平衡。</p>
+                            </div>
+
+                            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px;">
+                                <h3 style="font-size: 1rem; color: #fff; margin-bottom: 10px;">网剧《开挖掘机怎么了》 / 绿幕与修补</h3>
+                                <p style="color: #a1a1a6; font-size: 0.9rem; line-height: 1.6;">负责绿幕抠像及画面修补工作，使用 Keylight 和提取工具高效扣除绿幕；运用 Mocha Pro 对非绿幕画面进行精准追踪修补，严格保证黑白通道的通透度。</p>
+                            </div>
+
+                            <div style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px;">
+                                <h3 style="font-size: 1rem; color: #fff; margin-bottom: 10px;">电视剧《鲲鹏击浪》 / 综合合成与 AI 应用</h3>
+                                <p style="color: #a1a1a6; font-size: 0.9rem; line-height: 1.6;">负责绿幕扣除合成、枪火合成及穿帮修补（人物头套、耳洞、汗珠、胡子修复）。并在制作期间借助 <b>Adobe Firefly</b> 创成式生成工具对部分画面进行重绘应用，提升合成效率与效果。</p>
+                            </div>
+
+                            <div style="font-size: 0.85rem; color: #86868b; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                <p>• <b>电力公司宣传片</b>：AE Particular 制作特效光线</p>
+                                <p>• <b>网络电影《谍战津门》</b>：威亚擦除、画面修补、人物美化</p>
+                                <p>• <b>央视《千里音缘》</b>：花字与人名条制作</p>
+                                <p>• <b>地方台春晚节目《双面绣影》</b>：绿幕抠像处理</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="poster-grid">
+        <div class="poster-card" onclick="openModal('modal_yunhe')">
+            <img src="https://i.ibb.co/wFt8bNKx/Pix-Pin-2025-02-26-15-48-08.png" class="poster-img">
+            <div class="poster-overlay"><h3>运河边的人们</h3><div class="btn-view">查看预览</div></div>
+        </div>
+
+        <div class="poster-card" onclick="openModal('modal_wajueji')">
+            <img src="https://i.ibb.co/1fLgpy00/10001.png" class="poster-img">
+            <div class="poster-overlay"><h3>开挖掘机怎么啦</h3><div class="btn-view">查看预览</div></div>
+        </div>
+        
+        <div class="poster-card" onclick="openModal('modal_kunpeng')">
+            <img src="https://i.ibb.co/dw39TdHQ/6942acbb-1015-4f0b-ad76-d32debec98eb.png" class="poster-img">
+            <div class="poster-overlay"><h3>鲲鹏击浪</h3><div class="btn-view">查看预览</div></div>
+        </div>
+
+        <div class="poster-card" onclick="openModal('modal_diezhan')">
+            <img src="https://i.ibb.co/VWSVyBJc/Pix-Pin-2025-02-26-15-50-36.png" class="poster-img">
+            <div class="poster-overlay"><h3>谍战津门</h3><div class="btn-view">查看预览</div></div>
+        </div>
+    </div>
+
+    <section id="motion-gallery" style="background: #0f0f0f; padding: 80px 20px; font-family: 'Segoe UI', Roboto, sans-serif; color: #fff;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <header style="text-align: center; margin-bottom: 60px;">
+                <h2 style="font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 10px; background: linear-gradient(45deg, #ff3366, #ffcc00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">动效练习</h2>
+            </header>
+
+            <div class="motion-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;">
+                <div class="motion-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; transition: 0.3s; overflow: hidden; text-align: center;">
+                    <img src="https://i.ibb.co/pBJ4Fhnw/faceid-ezgif-com-video-to-webp-converter.webp" alt="FaceID Motion" style="width: 100%; height: auto; margin-bottom: 15px; border-radius: 10px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 500; margin: 0;">FaceID</h3>
+                </div>
+
+                <div class="motion-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; transition: 0.3s; text-align: center;">
+                    <img src="https://i.ibb.co/rKHpzHj6/netfilx-ezgif-com-video-to-webp-converter.webp" alt="Netflix Motion" style="width: 100%; height: auto; margin-bottom: 15px; border-radius: 10px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 500; margin: 0;">Netflix</h3>
+                </div>
+
+                <div class="motion-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; transition: 0.3s; text-align: center;">
+                    <img src="https://i.ibb.co/vCr24wH4/Rstar-ezgif-com-video-to-webp-converter.webp" alt="Rockstar Motion" style="width: 100%; height: auto; margin-bottom: 15px; border-radius: 10px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 500; margin: 0;">Rockstar</h3>
+                </div>
+
+                <div class="motion-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; transition: 0.3s; text-align: center;">
+                    <img src="https://i.ibb.co/gLRtFxDj/steamdeck-ezgif-com-video-to-webp-converter.webp" alt="Steam Deck Motion" style="width: 100%; height: auto; margin-bottom: 15px; border-radius: 10px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 500; margin: 0;">Steam Deck UI</h3>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .motion-card:hover { transform: translateY(-10px); background: rgba(255, 255, 255, 0.1) !important; border-color: #ff3366 !important; box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+        </style>
+    </section>
+
+    <footer>
+        <div style="margin-bottom: 20px; font-size: 1rem; color: #a1a1a6; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
+            <span>📞 18447600849</span>
+            <span>✉️ gongjl@zohomail.cn</span>
+        </div>
+        <p>GONG JINLONG · PORTFOLIO · 2026</p>
+    </footer>
+</main> <div id="modal_yunhe" class="modal">
+    <span class="close-btn" onclick="closeModal('modal_yunhe')">&times;</span>
+    <h2 style="margin: 40px 0; letter-spacing: 4px; font-weight: 300;">预览</h2>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/dNvLhmJ/Pix-Pin-2025-02-24-17-59-01.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/bkPn02C/Pix-Pin-2025-02-24-17-58-43.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/PZjgzBMF/Pix-Pin-2025-02-24-17-19-04.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/VpNyzF3K/Pix-Pin-2025-02-24-17-18-39.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/PvPj5j2L/Pix-Pin-2025-02-24-17-20-39.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/zV0R0qcv/Pix-Pin-2025-02-24-17-20-19.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/1tVXWGbW/Pix-Pin-2025-02-24-17-52-56.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/m5hcvf9R/Pix-Pin-2025-02-24-17-52-30.png" class="inner-img"></div></div></div>
+</div>
+
+<div id="modal_wajueji" class="modal">
+    <span class="close-btn" onclick="closeModal('modal_wajueji')">&times;</span>
+    <h2 style="margin: 40px 0; letter-spacing: 4px; font-weight: 300;">预览</h2>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move3(event)" ontouchmove="move3(event)"><div class="img-layer" style="width:100%; z-index:1"><img src="https://i.ibb.co/wFpjRT8L/Pix-Pin-2025-02-24-16-31-22.png" class="inner-img"></div><div class="img-layer line-blue" style="width:66%; z-index:2"><img src="https://i.ibb.co/JjGqK8v8/Pix-Pin-2025-02-24-16-32-09.png" class="inner-img"></div><div class="img-layer line-white" style="width:33%; z-index:3"><img src="https://i.ibb.co/RpRdGFrN/Pix-Pin-2025-02-24-16-30-18.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move3(event)" ontouchmove="move3(event)"><div class="img-layer" style="width:100%; z-index:1"><img src="https://i.ibb.co/Vpj3Yfj8/Pix-Pin-2025-02-24-16-26-32.png" class="inner-img"></div><div class="img-layer line-blue" style="width:66%; z-index:2"><img src="https://i.ibb.co/fVS3tz5L/Pix-Pin-2025-02-24-16-27-27.png" class="inner-img"></div><div class="img-layer line-white" style="width:33%; z-index:3"><img src="https://i.ibb.co/Zp3ggXsJ/Pix-Pin-2025-02-24-16-26-58.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/MD43SvzR/Pix-Pin-2025-02-24-16-09-11.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/0VYph6pW/Pix-Pin-2025-02-24-16-08-55.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/DgWJBTkn/Pix-Pin-2025-02-24-16-06-01.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/spGN6mKD/Pix-Pin-2025-02-24-16-05-42.png" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/9HBjNjd1/Pix-Pin-2025-02-24-16-03-39.png" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/208vpF7J/Pix-Pin-2025-02-24-16-03-17.png" class="inner-img"></div></div></div>
+</div>
+
+<div id="modal_kunpeng" class="modal">
+    <span class="close-btn" onclick="closeModal('modal_kunpeng')">&times;</span>
+    <h2 style="margin: 40px 0; letter-spacing: 4px; font-weight: 300;">预览</h2>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/kg2NDYk0/V1-0001-C056-C004-130101-R2-RS-23-48-55-13.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/NnmQMbf1/V1-0001-C056-C004-130101-R2-RS-23-48-55-13.jpg" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/5W2SZG0S/E189-C016-130101-R3-FT-1627580.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/7dWbMpdF/E189-C016-130101-R3-FT-18-05-11-14.jpg" class="inner-img"></div></div></div>
+</div>
+
+<div id="modal_diezhan" class="modal">
+    <span class="close-btn" onclick="closeModal('modal_diezhan')">&times;</span>
+    <h2 style="margin: 40px 0; letter-spacing: 4px; font-weight: 300;">预览</h2>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/wZtHvGCz/DZJM-0016-0-04-41-18.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/XfQkKXfy/DZJM-0016-0-04-41-18.jpg" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/5XJf0rs6/DZJM-0016-0-04-43-06.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/ynHgmRfR/DZJM-0016-0-04-43-06.jpg" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/dFD92hG/DZJM-0016-0-04-41-14.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/7dn41TRz/DZJM-0016-0-04-41-14.jpg" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/wNnCKWPt/DZJM-0016-0-04-42-06.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/kVvnCxjz/DZJM-0016-0-04-42-06.jpg" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/93k0F8N5/DZJM-0016-0-04-42-04.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/q3pjt206/DZJM-0016-0-04-42-04.jpg" class="inner-img"></div></div></div>
+    <div class="comparison-wrapper"><div class="comparison-container" onmousemove="move2(event)"><img src="https://i.ibb.co/RG1NwXWf/DZJM-0016-0-04-43-22.jpg" style="width:100%;height:100%;object-fit:cover;"><div class="img-layer line-white" style="width:50%;z-index:5"><img src="https://i.ibb.co/6JVk9pgP/DZJM-0016-0-04-43-22.jpg" class="inner-img"></div></div></div>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({ duration: 1000, once: true, offset: 50 });
+
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+        document.body.style.overflow = 'hidden';
+        window.dispatchEvent(new Event('resize'));
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    // 窗口大小改变时重置对比图宽度
+    window.addEventListener('resize', () => {
+        const containers = document.querySelectorAll('.comparison-container');
+        containers.forEach(c => {
+            const w = c.offsetWidth;
+            c.querySelectorAll('.inner-img').forEach(img => img.style.width = w + 'px');
+        });
+    });
+
+    function move2(e) {
+        const c = e.currentTarget;
+        const layer = c.querySelector('.img-layer');
+        const rect = c.getBoundingClientRect();
+        const x = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - rect.left;
+        layer.style.width = Math.max(0, Math.min(100, (x/rect.width)*100)) + '%';
+    }
+
+    function move3(e) {
+        const c = e.currentTarget;
+        const layers = c.querySelectorAll('.img-layer');
+        const rect = c.getBoundingClientRect();
+        const x = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - rect.left;
+        const p = (x/rect.width)*100;
+        layers[2].style.width = p + '%'; 
+        layers[1].style.width = Math.min(100, p + 33.3) + '%'; 
+    }
+</script>
+</body>
+</html>
